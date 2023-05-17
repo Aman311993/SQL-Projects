@@ -111,3 +111,68 @@ select userid,product_id,count(product_id)as no_of_times
 from sales group by userid,product_id)a) b where b.rnk=1;
 
 
+--Which item was purchased first by the customer after they become a member?
+select * from sales;
+select * from product;
+select * from goldusers_signup;
+select * from users;
+
+select * from (
+select c.*,
+rank()over(partition by userid order by created_date asc) rnk from 
+(
+SELECT s.userid,s.created_date,s.product_id,g.gold_signup_date
+from sales s inner join goldusers_signup g on s.userid=g.userid
+and created_date >= gold_signup_date) c)a where a.rnk=1;
+
+--Which item was purchased just before the customer became a member?
+select * from (
+select c.*,
+rank()over(partition by userid order by created_date desc) rnk from 
+(
+SELECT s.userid,s.created_date,s.product_id,g.gold_signup_date
+from sales s inner join goldusers_signup g on s.userid=g.userid
+and created_date <= gold_signup_date)c)a where a.rnk=1;
+
+
+--What is the total orders and amount spent for each member before 
+--they became a member?
+select * from sales;
+select * from product;
+select * from goldusers_signup;
+select * from users;
+select userid,count(created_date)as order_purchased,sum(price) total_amount_spent
+from (
+select c.*,p.price from (
+SELECT s.userid,s.created_date,s.product_id,g.gold_signup_date
+from sales s inner join goldusers_signup g on s.userid=g.userid
+and created_date <= gold_signup_date)c inner join product p on
+c.product_id=p.product_id)d group by userid;
+
+
+
+--If buying each product generates points for ex: 5rs=2 zomato points and 
+--each product has different purchasing points for ex: for p1 5rs=1 zomato points,
+--for p2 10 rs =5 zomato points and p3 5rs=1 zomato points.
+--calculate points collected by each customers and for which product most points
+--have been given till now.
+
+select * from sales;
+select * from product;
+
+select userid,sum(total_no_of_points) as total_points_earned from (
+select e.*,net_amount/points as total_no_of_points from (
+select d.*, case when product_id=1 then 5 
+when product_id=2 then 2 
+when product_id=3 then 5 else 0 end as points from (
+select c.userid,c.product_id,sum(price) as net_amount from (
+select s.*, p.price from sales s inner join product p on 
+s.product_id=p.product_id)c group by c.userid,c.product_id)d)e)f group by userid;
+
+
+
+
+
+
+
+
