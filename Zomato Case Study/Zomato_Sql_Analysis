@@ -53,5 +53,61 @@ select * from product;
 select * from goldusers_signup;
 select * from users;
 
+--What is the total amount each customer spent on zomato ?
+select * from sales;
+select * from product;
+select * from goldusers_signup;
+select * from users;
+select s.userid,sum(p.price) as total_amount from 
+sales s inner join product p on
+s.product_id=p.product_id group by s.userid;
+
+--How many days each customer visited zomato ?
+select * from sales;
+select * from product;
+select * from goldusers_signup;
+select * from users;
+
+select userid,count(distinct created_date) as no_of_days from sales 
+group by userid;
+
+--What was the first product purchased by each customer?
+select * from sales;
+select * from product;
+select * from goldusers_signup;
+select * from users;
+
+select userid,product_id from (
+select * ,
+rank() over(partition by userid order by created_date asc) as rnk
+from sales) a where a.rnk=1;
+
+--What is the most purchased item on the menu and how many times was it purchased 
+--by all customers;
+select * from sales;
+select * from product;
+select * from goldusers_signup;
+select * from users;
+
+select * from sales;
+
+select top 1 product_id,count(product_id) as no_of_times from sales group by 
+product_id order by no_of_times desc;
+
+select userid,count(product_id) as frequency_of_product from sales where product_id =
+(select top 1 product_id from sales group by 
+product_id order by count(product_id) desc)
+group by userid;
+
+--Which item was the most popular for each customer?
+
+select * from sales;
+select * from product;
+select * from goldusers_signup;
+select * from users;
+select * from (
+select *,rank() over(partition by userid order by no_of_times desc)as rnk from (
+select userid,product_id,count(product_id)as no_of_times 
+from sales group by userid,product_id)a) b where b.rnk=1;
 
 
